@@ -1,11 +1,16 @@
 import re
+from flask import request, url_for
 from book_library_app import db
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.expression import BinaryExpression
+from typing import Tuple
 from datetime import datetime
 from flask_sqlalchemy.query import Query
 from marshmallow import Schema, fields, validate, validates, ValidationError
-from werkzeug.datastructures import ImmutableDict
+
+
+from book_library_app import Config
+
 
 COMPARISON_OPERATORS_RE = re.compile(r'(.*)\[(gte|gt|lte|lt)\]')
 
@@ -52,9 +57,9 @@ class Author(db.Model):
         return operator_mapping[operator]
 
     @staticmethod
-    def apply_filter(query: Query, params: ImmutableDict) -> Query:
-        for param, value in params.items():
-            if param not in {'fields', 'sort'}:
+    def apply_filter(query: Query) -> Query:
+        for param, value in request.args.items():
+            if param not in {'fields', 'sort', 'page', 'limit'}:
                 operator = '=='
                 match = COMPARISON_OPERATORS_RE.match(param)
                 if match is not None:
@@ -69,6 +74,26 @@ class Author(db.Model):
                     filter_argument = Author.get_filter_argument(column_attr, value, operator)
                     query = query.filter(filter_argument)
         return query
+
+    @staticmethod
+    def get_pagination(query: Query) -> Tuple[list, dict]:
+        page = request.args.get('page', 1, type=int)
+        limit = request.args.get('limit', Config.PER_PAGE, type=int)
+        params = {key: value for key, value in request.args.items() if key != 'page'}
+        paginate_obj = query.paginate(page=page, per_page=limit, error_out=False)
+        pagination = {
+            'total_pages': paginate_obj.pages,
+            'total_records': paginate_obj.total,
+            'current_page': url_for('get_authors', page=page, **params)
+        }
+
+        if paginate_obj.has_next:
+            pagination['next_page'] = url_for('get_authors', page=page+1, **params)
+
+        if paginate_obj.has_prev:
+            pagination['previous_page'] = url_for('get_authors', page=page-1, **params)
+
+        return paginate_obj.items, pagination
 
 
 class AuthorSchema(Schema):
