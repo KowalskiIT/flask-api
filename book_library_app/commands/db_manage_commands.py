@@ -2,21 +2,23 @@ import json
 from datetime import datetime
 from pathlib import Path
 from sqlalchemy import text
-from book_library_app import app, db
+
+from book_library_app import db
 from book_library_app.models import Author
+from book_library_app.commands import db_manage_bp
 
 
-@app.cli.group()
+@db_manage_bp.cli.group()
 def db_manage():
     """Database management commands"""
     pass
 
 
-@db_manage.command()
+@db_manage_bp.command()
 def add_data():
     """Add sample data to database"""
     try:
-        authors_path = Path(__file__).parent / 'samples' / 'authors.json'
+        authors_path = Path(__file__).parent.parent / 'samples' / 'authors.json'
         with open(authors_path) as file:
             data_json = json.load(file)
         for item in data_json:
@@ -29,7 +31,7 @@ def add_data():
         print("Unexpected error: {}".format(exc))
 
 
-@db_manage.command()
+@db_manage_bp.command()
 def remove_data():
     """Remove all data from the database"""
     try:
