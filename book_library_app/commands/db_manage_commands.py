@@ -14,7 +14,7 @@ def db_manage():
     pass
 
 
-@db_manage_bp.command()
+@db_manage.command()
 def add_data():
     """Add sample data to database"""
     try:
@@ -31,7 +31,7 @@ def add_data():
         print("Unexpected error: {}".format(exc))
 
 
-@db_manage_bp.command()
+@db_manage.command()
 def remove_data():
     """Remove all data from the database"""
     try:
