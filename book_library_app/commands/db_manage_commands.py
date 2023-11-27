@@ -26,7 +26,7 @@ def add_data():
             author = Author(**item)
             db.session.add(author)
         db.session.commit()
-        print("Data has been successfully addd to database")
+        print("Data has been successfully added to database")
     except Exception as exc:
         print("Unexpected error: {}".format(exc))
 
