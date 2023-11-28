@@ -48,6 +48,7 @@ class AuthorSchema(Schema):
     first_name = fields.String(required=True, validate=validate.Length(max=50))
     last_name = fields.String(required=True, validate=validate.Length(max=50))
     birth_date = fields.Date('%d-%m-%Y', required=True)
+    books = fields.List(fields.Nested(lambda: BookSchema(exclude=['author'])))
 
     @validates('birth_date')
     def validate_birth_date(self, value):
