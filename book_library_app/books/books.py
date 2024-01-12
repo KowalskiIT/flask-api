@@ -74,7 +74,7 @@ def delete_book(book_id: int):
 
 
 @books_bp.route('/authors/<int:author_id>/books', methods=['GET'])
-def get_al_author_books(author_id: int):
+def get_all_author_books(author_id: int):
     Author.query.get_or_404(author_id, description=f"Author with id {author_id} not found")
     books = Book.query.filter(Book.author_id == author_id).all()
 
@@ -85,3 +85,22 @@ def get_al_author_books(author_id: int):
         'data': items,
         'number_of_records': len(items)
     })
+
+
+@books_bp.route('/authors/<int:author_id>/books', methods=['POST'])
+@validate_json_content_type
+@use_args(BookSchema(exclude=['author_id']), error_status_code=400)
+def create_book(args: dict, author_id: int):
+    Author.query.get_or_404(author_id, description=f"Author with id {author_id} not found")
+    if Book.query.filter(Book.isbn == args['isbn']).first():
+        abort(409, description=f'Book with ISBN {args["isbn"]} already exists')
+
+    book = Book(author_id=author_id, **args)
+
+    db.session.add(book)
+    db.session.commit()
+
+    return jsonify({
+        'succes': True,
+        'data': book_schema.dump(book)
+    }), 201
