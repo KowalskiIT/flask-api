@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from marshmallow import Schema, fields, validate, validates, ValidationError
+from werkzeug.security import generate_password_hash
 
 from book_library_app import db
 
@@ -50,6 +51,10 @@ class User(db.Model):
     email = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @staticmethod
+    def generate_hashed_password(password: str) -> str:
+        return generate_password_hash(password)
 
 
 class AuthorSchema(Schema):
