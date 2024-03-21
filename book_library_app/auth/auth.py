@@ -52,7 +52,7 @@ def login(args: dict):
 @auth_bp.route('/me', methods=['GET'])
 @token_required
 def get_current_user(user_id: int):
-    user = User.query.get_or_404(user_id, description=f'User with id {user_id} not found')
+    user = db.get_or_404(User, user_id, description=f'User with id {user_id} not found')
 
     return jsonify({
         'success': True,
@@ -65,7 +65,7 @@ def get_current_user(user_id: int):
 @validate_json_content_type
 @use_args(user_password_update_schema, error_status_code=400)
 def update_user_password(user_id: int, args: dict):
-    user = User.query.get_or_404(user_id, description=f'User with id {user_id} not found')
+    user = db.get_or_404(User, user_id, description=f'User with id {user_id} not found')
 
     if not user.is_password_valid(args['current_password']):
         abort(401, description='Invalid password')
@@ -89,7 +89,7 @@ def update_user_data(user_id: int, args: dict):
     if User.query.filter(User.email == args['email']).first():
         abort(409, description=f'User with email {args["email"]} already exists')
 
-    user = User.query.get_or_404(user_id, description=f'User with id {user_id} not found')
+    user = db.get_or_404(User, user_id, description=f'User with id {user_id} not found')
 
     user.username = args['username']
     user.email = args['email']

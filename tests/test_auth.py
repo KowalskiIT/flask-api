@@ -99,3 +99,31 @@ def test_get_current_user_missing_token(client):
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is False
     assert 'data' not in response_data
+
+
+def test_update_password(client, user, token):
+    response = client.put('/api/v1/auth/update/password',
+                          headers={
+                              'Authorization': f'Bearer {token}'},
+                          json={
+                               'current_password': user['password'],
+                               'new_password': 'qwerty'
+                          })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response_data['success'] is True
+    assert 'creation_date' in response_data['data']
+
+
+def test_update_invalid_password(client, user, token):
+    response = client.put('/api/v1/auth/update/password',
+                          headers={
+                              'Authorization': f'Bearer {token}'},
+                          json={
+                               'current_password': 'invalid_password',
+                               'new_password': 'qwerty'
+                          })
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response_data['success'] is False
+    assert 'Invalid password' in response_data['message']
