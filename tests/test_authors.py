@@ -75,3 +75,29 @@ def test_get_single_author_bad_id(client):
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is False
     assert 'Author with id 1 not found' in response_data['message']
+
+
+def test_create_author(client, token, author):
+    response = client.post('/api/v1/authors/',
+                           json=author,
+                           headers={
+                               'Authorization': f'Bearer {token}'
+                           })
+    response_data = response.get_json()
+    expected_result = {
+        'success': True,
+        'data': {
+            **author,
+            'id': 1,
+            'books': []
+        }
+    }
+    assert response.status_code == 201
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data == expected_result
+
+    response = client.get('/api/v1/authors/1')
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data == expected_result
