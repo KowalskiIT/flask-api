@@ -66,3 +66,12 @@ def test_get_single_author(client, sample_data):
     assert response_data['data']['last_name'] == 'Sapkowski'
     assert response_data['data']['birth_date'] == '21-06-1948'
     assert len(response_data['data']['books']) == 1
+
+
+def test_get_single_author_bad_id(client):
+    response = client.get('/api/v1/authors/1')
+    response_data = response.get_json()
+    assert response.status_code == 404
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'Author with id 1 not found' in response_data['message']
